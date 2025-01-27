@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Simulator</title>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body class="bg-light-gray font-roboto">
+    <header class="header">
+        <h1 class="title text-center">Battle Simulator</h1>
+    </header>
+
+    <!-- Battle setup section -->
+    <section id="battle-setup" class="section">
+        <h2 class="section-title text-center">Setup Battle</h2>
+        <form id="battle-form" class="form">
+            <div class="battle-container">
+                <!-- Attacker Section -->
+                <div class="battle-column">
+                    <h3>Attacker</h3>
+                    <label for="attacker">Select Attacker:</label>
+                    <select id="attacker" name="attacker" class="select"></select>
+
+                    <h4>Troop Ratios</h4>
+                    <label for="attacker-infantry">Infantry:</label>
+                    <input type="number" id="attacker-infantry" class="input" min="0" max="100" step="1" placeholder="%" required>
+
+                    <label for="attacker-lancer">Lancer:</label>
+                    <input type="number" id="attacker-lancer" class="input" min="0" max="100" step="1" placeholder="%" required>
+
+                    <label for="attacker-marksman">Marksman:</label>
+                    <input type="number" id="attacker-marksman" class="input" min="0" max="100" step="1" placeholder="%" required>
+
+                    <h4>Rally Join Heroes</h4>
+                    <div id="attacker-join-container">
+                        <select id="attacker-join-options" class="select">
+                            <option value="jessie">Jessie</option>
+                            <option value="patrick">Patrick</option>
+                            <option value="sergey">Sergey</option>
+                            <option value="walis">Walis Bokan</option>
+                            <option value="ling_xue">Ling Xue</option>
+                            <option value="seo_yoon">Seo-yoon</option>
+                            <option value="jasser">Jasser</option>
+                            <option value="bahiti">Bahiti</option>
+                        </select>
+                        <button type="button" class="btn-secondary" onclick="addHero('attacker-join')">Add</button>
+                        <ul id="attacker-join-selected" class="hero-list"></ul>
+                    </div>
+                </div>
+
+                <!-- Defender Section -->
+                <div class="battle-column">
+                    <h3>Defender</h3>
+                    <label for="defender">Select Defender:</label>
+                    <select id="defender" name="defender" class="select"></select>
+
+                    <h4>Troop Ratios</h4>
+                    <label for="defender-infantry">Infantry:</label>
+                    <input type="number" id="defender-infantry" class="input" min="0" max="100" step="1" placeholder="%" required>
+
+                    <label for="defender-lancer">Lancer:</label>
+                    <input type="number" id="defender-lancer" class="input" min="0" max="100" step="1" placeholder="%" required>
+
+                    <label for="defender-marksman">Marksman:</label>
+                    <input type="number" id="defender-marksman" class="input" min="0" max="100" step="1" placeholder="%" required>
+
+                    <h4>Rally Join Heroes</h4>
+                    <div id="defender-join-container">
+                        <select id="defender-join-options" class="select">
+                            <option value="jessie">Jessie</option>
+                            <option value="patrick">Patrick</option>
+                            <option value="sergey">Sergey</option>
+                            <option value="walis">Walis Bokan</option>
+                            <option value="ling_xue">Ling Xue</option>
+                            <option value="seo_yoon">Seo-yoon</option>
+                            <option value="jasser">Jasser</option>
+                            <option value="bahiti">Bahiti</option>
+                        </select>
+                        <button type="button" class="btn-secondary" onclick="addHero('defender-join')">Add</button>
+                        <ul id="defender-join-selected" class="hero-list"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary">Simulate Battle</button>
+        </form>
+    </section>
+
+    <section id="battle-result" class="section">
+        <h2 class="section-title text-center">Battle Result</h2>
+        <p id="result-output" class="text-center"></p>
+    </section>
+
+    <section id="post-battle" class="section">
+        <h2 class="section-title text-center">Post-Battle Data</h2>
+        <form id="post-battle-form" class="form">
+            <label for="post-battle-player">Select Player:</label>
+            <select id="post-battle-player" class="select"></select>
+
+            <label for="verletzt">Verletzt:</label>
+            <input type="number" id="verletzt" name="verletzt" class="input" required>
+
+            <label for="leicht-verletzt">Leicht Verletzt:</label>
+            <input type="number" id="leicht-verletzt" name="leicht-verletzt" class="input" required>
+
+            <button type="submit" class="btn-primary">Save Post-Battle Data</button>
+        </form>
+    </section>
+
+    <script src="scripts/storage.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('post-battle').style.display = 'none'; // Hide post-battle data by default
+            loadPlayersIntoDropdown('attacker');
+            loadPlayersIntoDropdown('defender');
+            loadPlayersIntoDropdown('post-battle-player');
+        });
+
+        function addHero(type) {
+            const heroSelect = document.getElementById(`${type}-options`);
+            const heroList = document.getElementById(`${type}-selected`);
+            const selectedHero = heroSelect.value;
+
+            if (heroList.children.length >= 4) {
+                alert("You can select up to 4 heroes.");
+                return;
+            }
+
+            const listItem = document.createElement('li');
+            listItem.textContent = selectedHero;
+            heroList.appendChild(listItem);
+        }
+
+        const battleForm = document.getElementById('battle-form');
+        battleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            // Simulate battle logic
+            const attackerScore = Math.random() * 100 + parseInt(document.getElementById('attacker-infantry').value, 10);
+            const defenderScore = Math.random() * 100 + parseInt(document.getElementById('defender-infantry').value, 10);
+
+            let winner = '';
+            let suggestion = '';
+            if (attackerScore > defenderScore) {
+                winner = 'Attacker';
+                suggestion = 'Defender should increase their infantry ratio and include heroes like Patrick or Walis for better defense.';
+            } else {
+                winner = 'Defender';
+                suggestion = 'Attacker should balance their troop ratios and add heroes like Seo-yoon or Jessie for better offense.';
+            }
+
+            const resultOutput = document.getElementById('result-output');
+            resultOutput.textContent = `Simulation complete! Winner: ${winner}.`;
+
+            const tipOutput = document.createElement('p');
+            tipOutput.textContent = `Tip for the loser: ${suggestion}`;
+            resultOutput.appendChild(tipOutput);
+
+            // Show post-battle data
+            document.getElementById('post-battle').style.display = 'block';
+        });
+
+        const postBattleForm = document.getElementById('post-battle-form');
+        postBattleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const playerName = document.getElementById('post-battle-player').value;
+            const verletzt = parseInt(document.getElementById('verletzt').value, 10) || 0;
+            const leichtVerletzt = parseInt(document.getElementById('leicht-verletzt').value, 10) || 0;
+
+            const players = JSON.parse(localStorage.getItem('battleData'))?.players || [];
+            const player = players.find(p => p.name === playerName);
+
+            if (player) {
+                player.postBattleData = {
+                    verletzt,
+                    leichtVerletzt,
+                };
+                localStorage.setItem('battleData', JSON.stringify({ players }));
+                alert(`Post-battle data saved for ${playerName}.`);
+            } else {
+                alert('Player not found!');
+            }
+
+            postBattleForm.reset();
+        });
+
+        function loadPlayersIntoDropdown(dropdownId) {
+            const players = JSON.parse(localStorage.getItem("battleData"))?.players || [];
+            const dropdown = document.getElementById(dropdownId);
+
+            dropdown.innerHTML = '';
+            players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player.name;
+                option.textContent = `${player.name}`;
+                dropdown.appendChild(option);
+            });
+        }
+    </script>
+</body>
+</html>

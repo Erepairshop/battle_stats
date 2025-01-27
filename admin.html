@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Page - Battle Statistics</title>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body class="bg-light-gray font-roboto">
+    <header class="header">
+        <h1 class="title">Admin Page</h1>
+    </header>
+
+    <!-- Section for entering player statistics -->
+    <section id="player-stats" class="section">
+        <h2 class="section-title">Enter Player Statistics</h2>
+        <form id="stats-form" class="form">
+            <label for="player-name">Player Name:</label>
+            <input type="text" id="player-name" name="player-name" required class="input">
+
+            <label for="role">Role:</label>
+            <select id="role" name="role" required class="select">
+                <option value="attacker">Attacker</option>
+                <option value="defender">Defender</option>
+            </select>
+
+            <label for="troop-count">Rally Capacity (Troops):</label>
+            <input type="number" id="troop-count" name="troop-count" required class="input">
+
+            <h3>Select Rally Leader Heroes</h3>
+            <div id="leader-heroes-container">
+                <label>
+                    <input type="checkbox" value="jeronimo"> Jeronimo
+                </label>
+                <label>
+                    <input type="checkbox" value="mia"> Mia
+                </label>
+                <label>
+                    <input type="checkbox" value="logan"> Logan
+                </label>
+                <label>
+                    <input type="checkbox" value="molly"> Molly
+                </label>
+                <label>
+                    <input type="checkbox" value="alonso"> Alonso
+                </label>
+                <label>
+                    <input type="checkbox" value="greg"> Greg
+                </label>
+            </div>
+
+            <h3>Infantry Stats</h3>
+            <label for="infantry-attack">Infantry Attack:</label>
+            <input type="number" id="infantry-attack" name="infantry-attack" required class="input">
+
+            <label for="infantry-defense">Infantry Defense:</label>
+            <input type="number" id="infantry-defense" name="infantry-defense" required class="input">
+
+            <label for="infantry-lethality">Infantry Lethality:</label>
+            <input type="number" id="infantry-lethality" name="infantry-lethality" required class="input">
+
+            <label for="infantry-health">Infantry Health:</label>
+            <input type="number" id="infantry-health" name="infantry-health" required class="input">
+
+            <h3>Lancer Stats</h3>
+            <label for="lancer-attack">Lancer Attack:</label>
+            <input type="number" id="lancer-attack" name="lancer-attack" required class="input">
+
+            <label for="lancer-defense">Lancer Defense:</label>
+            <input type="number" id="lancer-defense" name="lancer-defense" required class="input">
+
+            <label for="lancer-lethality">Lancer Lethality:</label>
+            <input type="number" id="lancer-lethality" name="lancer-lethality" required class="input">
+
+            <label for="lancer-health">Lancer Health:</label>
+            <input type="number" id="lancer-health" name="lancer-health" required class="input">
+
+            <h3>Marksman Stats</h3>
+            <label for="marksman-attack">Marksman Attack:</label>
+            <input type="number" id="marksman-attack" name="marksman-attack" required class="input">
+
+            <label for="marksman-defense">Marksman Defense:</label>
+            <input type="number" id="marksman-defense" name="marksman-defense" required class="input">
+
+            <label for="marksman-lethality">Marksman Lethality:</label>
+            <input type="number" id="marksman-lethality" name="marksman-lethality" required class="input">
+
+            <label for="marksman-health">Marksman Health:</label>
+            <input type="number" id="marksman-health" name="marksman-health" required class="input">
+
+            <button type="submit" class="btn-primary">Save Statistics</button>
+        </form>
+    </section>
+
+    <!-- Player management section -->
+    <section id="player-management" class="section">
+        <h2 class="section-title">Manage Players</h2>
+        <ul id="player-list" class="player-list"></ul>
+    </section>
+
+    <script src="scripts/storage.js"></script>
+    <script>
+        const statsForm = document.getElementById('stats-form');
+        const playerList = document.getElementById('player-list');
+
+        let currentPlayer = null;
+
+        statsForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const playerName = document.getElementById('player-name').value;
+            const role = document.getElementById('role').value;
+            const troopCount = parseFloat(document.getElementById('troop-count').value) || 0;
+
+            const leaderHeroes = Array.from(document.querySelectorAll('#leader-heroes-container input:checked'))
+                .map(checkbox => checkbox.value);
+
+            if (leaderHeroes.length > 3) {
+                alert("You can only select up to 3 rally leader heroes.");
+                return;
+            }
+
+            const stats = {
+                infantryAttack: parseFloat(document.getElementById('infantry-attack').value) || 0,
+                infantryDefense: parseFloat(document.getElementById('infantry-defense').value) || 0,
+                infantryLethality: parseFloat(document.getElementById('infantry-lethality').value) || 0,
+                infantryHealth: parseFloat(document.getElementById('infantry-health').value) || 0,
+                lancerAttack: parseFloat(document.getElementById('lancer-attack').value) || 0,
+                lancerDefense: parseFloat(document.getElementById('lancer-defense').value) || 0,
+                lancerLethality: parseFloat(document.getElementById('lancer-lethality').value) || 0,
+                lancerHealth: parseFloat(document.getElementById('lancer-health').value) || 0,
+                marksmanAttack: parseFloat(document.getElementById('marksman-attack').value) || 0,
+                marksmanDefense: parseFloat(document.getElementById('marksman-defense').value) || 0,
+                marksmanLethality: parseFloat(document.getElementById('marksman-lethality').value) || 0,
+                marksmanHealth: parseFloat(document.getElementById('marksman-health').value) || 0,
+            };
+
+            const players = JSON.parse(localStorage.getItem('battleData'))?.players || [];
+            const existingPlayer = players.find(p => p.name === playerName);
+
+            if (existingPlayer) {
+                existingPlayer.role = role;
+                existingPlayer.troopCount = troopCount;
+                existingPlayer.leaderHeroes = leaderHeroes;
+                existingPlayer.stats = stats;
+            } else {
+                players.push({
+                    name: playerName,
+                    role,
+                    troopCount,
+                    leaderHeroes,
+                    stats,
+                });
+            }
+
+            localStorage.setItem('battleData', JSON.stringify({ players }));
+            alert(`${playerName} has been saved.`);
+            refreshPlayerList();
+            statsForm.reset();
+        });
+
+        function refreshPlayerList() {
+            const players = JSON.parse(localStorage.getItem('battleData'))?.players || [];
+            playerList.innerHTML = '';
+
+            players.forEach((player, index) => {
+                const li = document.createElement('li');
+                li.textContent = `${index + 1}. ${player.name} (${player.role}) - Heroes: ${player.leaderHeroes.join(', ')}`;
+
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.className = 'btn-secondary';
+                editButton.addEventListener('click', () => loadPlayerForEdit(player.name));
+                li.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'btn-danger';
+                deleteButton.addEventListener('click', () => deletePlayer(player.name));
+                li.appendChild(deleteButton);
+
+                playerList.appendChild(li);
+            });
+        }
+
+        function loadPlayerForEdit(playerName) {
+            const players = JSON.parse(localStorage.getItem('battleData'))?.players || [];
+            const player = players.find(p => p.name === playerName);
+
+            if (player) {
+                currentPlayer = player.name;
+                document.getElementById('player-name').value = player.name;
+                document.getElementById('role').value = player.role;
+                document.getElementById('troop-count').value = player.troopCount;
+
+                const leaderHeroesContainer = document.querySelectorAll('#leader-heroes-container input');
+                leaderHeroesContainer.forEach(checkbox => {
+                    checkbox.checked = player.leaderHeroes.includes(checkbox.value);
+                });
+
+                document.getElementById('infantry-attack').value = player.stats.infantryAttack;
+                document.getElementById('infantry-defense').value = player.stats.infantryDefense;
+                document.getElementById('infantry-lethality').value = player.stats.infantryLethality;
+                document.getElementById('infantry-health').value = player.stats.infantryHealth;
+
+                document.getElementById('lancer-attack').value = player.stats.lancerAttack;
+                document.getElementById('lancer-defense').value = player.stats.lancerDefense;
+                document.getElementById('lancer-lethality').value = player.stats.lancerLethality;
+                document.getElementById('lancer-health').value = player.stats.lancerHealth;
+
+                document.getElementById('marksman-attack').value = player.stats.marksmanAttack;
+                document.getElementById('marksman-defense').value = player.stats.marksmanDefense;
+                document.getElementById('marksman-lethality').value = player.stats.marksmanLethality;
+                document.getElementById('marksman-health').value = player.stats.marksmanHealth;
+
+                alert(`Editing player: ${player.name}`);
+            }
+        }
+
+        function deletePlayer(playerName) {
+            const players = JSON.parse(localStorage.getItem('battleData'))?.players || [];
+            const updatedPlayers = players.filter(player => player.name !== playerName);
+
+            localStorage.setItem('battleData', JSON.stringify({ players: updatedPlayers }));
+            alert(`${playerName} has been deleted.`);
+            refreshPlayerList();
+        }
+
+        refreshPlayerList();
+    </script>
+</body>
+</html>
